@@ -40,7 +40,9 @@ class GameObject:
 
     def draw(self):
         """Каркас метода рисования объектов."""
-        raise NotImplementedError
+        raise NotImplementedError(
+            f'В классе {self.__class__.__name__} не реализован метод draw().'
+        )
 
 
 class Apple(GameObject):
@@ -49,17 +51,17 @@ class Apple(GameObject):
     def __init__(self, body_color=APPLE_COLOR, occupied_positions=None):
         """Метод задаёт цвет и случайную позицию яблока."""
         super().__init__(body_color)
-        self.randomize_position(occupied_positions)
+        self.randomize_position(occupied_positions or [])
 
     def randomize_position(self, occupied_positions):
         """Метод для рандомного размещения яблока на карте."""
-        if occupied_positions is None:
-            occupied_positions = []
-        self.position = (randint(0, (GRID_WIDTH - 1)) * GRID_SIZE,
-                         randint(0, (GRID_HEIGHT - 1)) * GRID_SIZE)
-        while self.position in occupied_positions:
-            self.position = (randint(0, (GRID_WIDTH - 1)) * GRID_SIZE,
-                             randint(0, (GRID_HEIGHT - 1)) * GRID_SIZE)
+        while True:
+            self.position = (
+                randint(0, (GRID_WIDTH - 1)) * GRID_SIZE,
+                randint(0, (GRID_HEIGHT - 1)) * GRID_SIZE
+            )
+            if self.position not in occupied_positions:
+                break
 
     def draw(self):
         """Метод рисования яблока на карте."""
@@ -85,11 +87,11 @@ class Snake(GameObject):
         """Метод движения змейки."""
         x_position, y_position = self.get_head_position()
         direction_x, direction_y = self.direction
-        self.position = (
+        new_position = (
             (direction_x * GRID_SIZE + x_position) % SCREEN_WIDTH,
             (direction_y * GRID_SIZE + y_position) % SCREEN_HEIGHT
         )
-        self.positions.insert(0, self.position)
+        self.positions.insert(0, new_position)
         if len(self.positions) > self.length:
             self.last = self.positions.pop()
         else:
@@ -113,7 +115,6 @@ class Snake(GameObject):
     def reset(self):
         """Метод обновления игры после проигрыша."""
         self.length = 1
-        self.position = SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2
         self.positions = [self.position]
         self.direction = choice([LEFT, RIGHT, UP, DOWN])
         self.next_direction = None
@@ -155,7 +156,7 @@ def main():
         if snake.get_head_position() == apple.position:
             snake.length += 1
             apple.randomize_position(snake.positions)
-        elif snake.get_head_position() in snake.positions[1:]:
+        elif snake.get_head_position() in snake.positions[4:]:
             snake.reset()
             screen.fill(BOARD_BACKGROUND_COLOR)
             apple.randomize_position(snake.positions)
